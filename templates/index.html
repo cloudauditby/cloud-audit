@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <title>Cloud Dependency Audit — Оценка устойчивости бизнеса</title>
+    <meta name="description" content="Бесплатный аудит зависимости вашего бизнеса от облачного провайдера. Business Impact Analysis за 30 секунд.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0f1318;
+            --surface: #161b22;
+            --surface-2: #1c232c;
+            --border: #28313c;
+            --border-strong: #3a4552;
+            --text: #e8ecf1;
+            --text-muted: #8f9aa8;
+            --accent: #7aa7e0;
+            --accent-dim: rgba(122, 167, 224, 0.14);
+            --red: #e5534b;
+            --orange: #e08a3c;
+            --yellow: #d4b03a;
+            --green: #4caf7a;
+            --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 15px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+        .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+
+        /* --- HEADER --- */
+        .header { border-bottom: 1px solid var(--border); }
+        .header .wrap {
+            display: flex; align-items: center; justify-content: space-between;
+            height: 56px;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 12px;
+            color: var(--text); text-decoration: none;
+            font-weight: 600; font-size: 15px;
+        }
+        .logo-mark {
+            width: 18px; height: 18px;
+            border: 2px solid var(--accent);
+            position: relative;
+        }
+        .logo-mark::after {
+            content: ''; position: absolute; inset: 3px;
+            background: var(--accent);
+        }
+        .header-meta { font-family: var(--mono); font-size: 12px; color: var(--text-muted); }
+
+        /* --- LAYOUT --- */
+        .layout {
+            display: grid;
+            grid-template-columns: 5fr 7fr;
+            gap: 64px;
+            padding: 72px 0 80px;
+            align-items: start;
+        }
+        .intro { position: sticky; top: 40px; }
+        .intro h1 {
+            font-size: 44px;
+            font-weight: 700;
+            line-height: 1.12;
+            letter-spacing: -0.02em;
+            margin-bottom: 20px;
+        }
+        .intro p {
+            color: var(--text-muted);
+            font-size: 16px;
+            max-width: 40ch;
+            margin-bottom: 36px;
+        }
+        .facts { list-style: none; border-top: 1px solid var(--border); }
+        .facts li {
+            display: flex; justify-content: space-between; gap: 16px;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+        .facts span:first-child { color: var(--text-muted); }
+        .facts span:last-child { font-family: var(--mono); font-size: 13px; }
+
+        /* --- PANEL --- */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            margin-bottom: 24px;
+        }
+        .panel-head {
+            padding: 20px 28px;
+            border-bottom: 1px solid var(--border);
+        }
+        .panel-head h2 { font-size: 17px; font-weight: 600; }
+        .panel-head p { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+        .panel-body { padding: 28px; }
+
+        /* --- FORM --- */
+        .form-group { margin-bottom: 22px; }
+        label {
+            display: block; font-size: 14px; font-weight: 500;
+            margin-bottom: 8px;
+        }
+        select {
+            width: 100%;
+            padding: 11px 40px 11px 14px;
+            background-color: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--border-strong);
+            border-radius: 3px;
+            font: inherit; font-size: 14px;
+            cursor: pointer;
+            appearance: none;
+            color-scheme: dark;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238f9aa8' stroke-width='2.5'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            transition: border-color 0.15s;
+        }
+        select option { background: var(--surface-2); color: var(--text); }
+        select:hover { border-color: #55616f; }
+        select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+            width: 100%;
+            padding: 13px 24px;
+            background: var(--accent);
+            color: #0b1118;
+            border: 1px solid var(--accent);
+            border-radius: 3px;
+            font: inherit; font-size: 15px; font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn:hover { background: #95b9e8; }
+        .btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.5; fill: none; }
+        .btn-secondary {
+            background: transparent; color: var(--text);
+            border-color: var(--border-strong);
+        }
+        .btn-secondary:hover { background: var(--surface-2); }
+        .form-submit { margin-top: 28px; }
+
+        /* --- RESULT --- */
+        .result { --risk: var(--accent); border-top: 3px solid var(--risk); }
+        .result.risk-red { --risk: var(--red); }
+        .result.risk-orange { --risk: var(--orange); }
+        .result.risk-yellow { --risk: var(--yellow); }
+        .result.risk-green { --risk: var(--green); }
+
+        .result-top {
+            display: flex; align-items: baseline; justify-content: space-between;
+            gap: 16px; flex-wrap: wrap;
+        }
+        .risk-level { font-size: 26px; font-weight: 700; letter-spacing: -0.01em; color: var(--risk); }
+        .score-text { font-family: var(--mono); font-size: 13px; color: var(--text-muted); }
+
+        /* segmented gauge */
+        .gauge {
+            display: grid; grid-template-columns: repeat(20, 1fr); gap: 3px;
+            margin: 20px 0 8px;
+        }
+        .seg { height: 22px; background: var(--surface-2); border: 1px solid var(--border); }
+        .seg.on { background: var(--risk); border-color: var(--risk); }
+
+        .result-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+        .result-section h3 { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+
+        /* --- BIA --- */
+        .bia-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin: 18px 0 24px;
+        }
+        .bia-item {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            padding: 14px;
+        }
+        .bia-label {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--accent);
+            letter-spacing: 0.08em;
+            margin-bottom: 8px;
+        }
+        .bia-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+            font-family: var(--mono);
+            letter-spacing: -0.01em;
+        }
+        .bia-note {
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.4;
+        }
+        .bia-consequences {
+            margin-top: 20px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border);
+        }
+        .bia-consequences h4 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+        .bia-warning {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 14px 16px;
+            background: rgba(229, 83, 75, 0.08);
+            border: 1px solid rgba(229, 83, 75, 0.3);
+            border-radius: 3px;
+            margin-top: 18px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .bia-warning svg {
+            width: 18px;
+            height: 18px;
+            stroke: var(--red);
+            stroke-width: 2;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .bia-warning strong { color: var(--red); }
+
+        .details-list, .rec-list { list-style: none; }
+        .details-list li {
+            padding: 11px 0 11px 18px;
+            font-size: 14px; color: #c3ccd7;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+        }
+        .details-list li:last-child { border-bottom: none; }
+        .details-list li::before {
+            content: ''; position: absolute; left: 0; top: 20px;
+            width: 6px; height: 6px; background: var(--risk);
+        }
+        .rec-list { counter-reset: rec; }
+        .rec-list li {
+            counter-increment: rec;
+            display: grid; grid-template-columns: 28px 1fr; gap: 8px;
+            padding: 16px 18px;
+            font-size: 14px; color: #c3ccd7;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            margin-bottom: 10px;
+            line-height: 1.55;
+        }
+        .rec-list li::before {
+            content: counter(rec);
+            font-family: var(--mono); font-size: 13px; color: var(--accent);
+        }
+        .result-actions {
+            margin-top: 28px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+        }
+
+        /* --- DONATE --- */
+        .donate-reqs { border-top: 1px solid var(--border); margin: 16px 0 20px; }
+        .donate-req {
+            display: flex; justify-content: space-between; align-items: center; gap: 16px;
+            padding: 13px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+        }
+        .donate-req-label { color: var(--text-muted); }
+        .donate-req-value { font-family: var(--mono); font-size: 13px; font-weight: 500; }
+        .donate-disclaimer { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+
+        /* --- FOOTER --- */
+        .footer { border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); }
+        .footer .wrap {
+            display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+            padding-top: 24px; padding-bottom: 24px;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 860px) {
+            .layout { grid-template-columns: 1fr; gap: 40px; padding: 44px 0 56px; }
+            .intro { position: static; }
+            .intro h1 { font-size: 34px; }
+            .bia-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 520px) {
+            .wrap { padding: 0 16px; }
+            .panel-head, .panel-body { padding-left: 20px; padding-right: 20px; }
+            .gauge { gap: 2px; }
+            .bia-grid { grid-template-columns: 1fr; }
+            .intro h1 { font-size: 28px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            * { transition: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="wrap">
+            <a href="/" class="logo">
+                <span class="logo-mark" aria-hidden="true"></span>
+                <span>Cloud Audit</span>
+            </a>
+            <span class="header-meta">v1.1</span>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <div class="layout">
+
+            <!-- INTRO -->
+            <section class="intro">
+                <h1>Что станет с вашим бизнесом, если облако упадёт?</h1>
+                <p>Ответьте на пять вопросов. Вы получите Business Impact Analysis и план действий на случай сбоя провайдера.</p>
+
+                <ul class="facts">
+                    <li><span>Время</span><span>до 1 минуты</span></li>
+                    <li><span>Регистрация</span><span>не нужна</span></li>
+                    <li><span>Ваши ответы</span><span>не сохраняются</span></li>
+                    <li><span>Стоимость</span><span>бесплатно</span></li>
+                </ul>
+            </section>
+
+            <!-- CONTENT -->
+            <div class="content">
+
+                <!-- FORM -->
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2>Опишите вашу инфраструктуру</h2>
+                        <p>Персональные данные не собираются.</p>
+                    </div>
+                    <div class="panel-body">
+                        <form method="post" action="/analyze">
+                            <div class="form-group">
+                                <label for="providers">Сколько облачных провайдеров вы используете?</label>
+                                <select id="providers" name="providers" required>
+                                    <option value="one">Один</option>
+                                    <option value="two">Два</option>
+                                    <option value="three_plus">Три и более</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="failover">Есть ли резервный провайдер с автоматическим переключением?</label>
+                                <select id="failover" name="failover" required>
+                                    <option value="no">Нет</option>
+                                    <option value="cold">Есть, но «холодный» (запуск вручную)</option>
+                                    <option value="hot">Есть, «горячий» (автоматический)</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="data_location">Где хранятся ваши критичные данные?</label>
+                                <select id="data_location" name="data_location" required>
+                                    <option value="single_cloud">В одном облаке</option>
+                                    <option value="multi_cloud">Распределены по нескольким облакам</option>
+                                    <option value="on_prem_backup">Есть локальный бэкап</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="downtime">Сколько часов простоя вы переживёте?</label>
+                                <select id="downtime" name="downtime" required>
+                                    <option value="less_than_4h">Меньше 4 часов</option>
+                                    <option value="4_to_24h">От 4 до 24 часов</option>
+                                    <option value="days">Несколько дней</option>
+                                    <option value="weeks_ok">Недели — не критично</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="gpu">Используете ли вы GPU/ML-нагрузки в облаке?</label>
+                                <select id="gpu" name="gpu" required>
+                                    <option value="no">Нет</option>
+                                    <option value="yes_noncritical">Да, но не критично</option>
+                                    <option value="yes_critical">Да, критично для бизнеса</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn form-submit">
+                                Проанализировать риск
+                                <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- RESULT -->
+                {% if result %}
+                <div class="panel result risk-{{ result.risk_color }}">
+                    <div class="panel-head">
+                        <h2>Результат аудита</h2>
+                        <p>Business Impact Analysis вашей инфраструктуры</p>
+                    </div>
+                    <div class="panel-body">
+                        <div class="result-top">
+                            <span class="risk-level">Риск: {{ result.risk_level }}</span>
+                            <span class="score-text">{{ result.score }} / {{ result.max_score }} баллов, {{ result.percentage }}%</span>
+                        </div>
+
+                        <div class="gauge" role="img" aria-label="Оценка: {{ result.percentage }}%">
+                            {% for i in range(20) %}<span class="seg{% if (i + 1) * 5 <= result.percentage %} on{% endif %}"></span>{% endfor %}
+                        </div>
+
+                        <!-- BIA -->
+                        {% if bia %}
+                        <div class="result-section">
+                            <h3>Business Impact Analysis</h3>
+
+                            <div class="bia-grid">
+                                <div class="bia-item">
+                                    <div class="bia-label">MTPD</div>
+                                    <div class="bia-value">{{ bia.mtpd.label }}</div>
+                                    <div class="bia-note">Максимально допустимый простой</div>
+                                </div>
+                                <div class="bia-item">
+                                    <div class="bia-label">RTO</div>
+                                    <div class="bia-value">{{ bia.rto_hours }} ч</div>
+                                    <div class="bia-note">Целевое время восстановления</div>
+                                </div>
+                                <div class="bia-item">
+                                    <div class="bia-label">RPO</div>
+                                    <div class="bia-value">{{ bia.rpo_hours }} ч</div>
+                                    <div class="bia-note">Допустимая потеря данных</div>
+                                </div>
+                                <div class="bia-item">
+                                    <div class="bia-label">ПОТЕРИ</div>
+                                    <div class="bia-value">{{ "{:,}".format(bia.loss_per_hour).replace(",", " ") }} ₽</div>
+                                    <div class="bia-note">Оценка потерь за час простоя</div>
+                                </div>
+                            </div>
+
+                            {% if bia.rto_hours > bia.mtpd.mtpd_hours %}
+                            <div class="bia-warning">
+                                <svg viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                                <div>
+                                    <strong>Критическое несоответствие RTO и MTPD.</strong>
+                                    Целевое время восстановления ({{ bia.rto_hours }} ч) превышает допустимый простой ({{ bia.mtpd.label }}).
+                                    При сбое вы не успеете восстановиться в пределах допустимого.
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <div class="bia-consequences">
+                                <h4>Операционные последствия при сбое</h4>
+                                <ul class="details-list">
+                                    {% for cons in bia.consequences %}
+                                    <li>{{ cons }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+
+                            {% if bia.rto_note or bia.rpo_note %}
+                            <div class="bia-consequences" style="margin-top: 16px; padding-top: 16px;">
+                                <h4>Комментарии по RTO и RPO</h4>
+                                <ul class="details-list">
+                                    {% if bia.rto_note %}<li>{{ bia.rto_note }}</li>{% endif %}
+                                    {% if bia.rpo_note %}<li>{{ bia.rpo_note }}</li>{% endif %}
+                                    {% if bia.loss_note %}<li>{{ bia.loss_note }}</li>{% endif %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- DETAILS -->
+                        <div class="result-section">
+                            <h3>Что повлияло на оценку</h3>
+                            <ul class="details-list">
+                                {% for detail in result.details %}
+                                <li>{{ detail }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+
+                        <!-- RECOMMENDATIONS -->
+                        {% if recommendations %}
+                        <div class="result-section">
+                            <h3>Рекомендации</h3>
+                            <ul class="rec-list">
+                                {% for rec in recommendations %}
+                                <li><span>{{ rec }}</span></li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+
+                        <div class="result-actions">
+                            <form method="post" action="/download/pdf">
+                                <input type="hidden" name="providers" value="{{ answers.providers }}">
+                                <input type="hidden" name="failover" value="{{ answers.failover }}">
+                                <input type="hidden" name="data_location" value="{{ answers.data_location }}">
+                                <input type="hidden" name="downtime" value="{{ answers.downtime }}">
+                                <input type="hidden" name="gpu" value="{{ answers.gpu }}">
+                                <button type="submit" class="btn btn-secondary">
+                                    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    Скачать отчёт в PDF
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- DONATE -->
+                {% if show_donate %}
+                <div class="panel">
+                    <div class="panel-head">
+                        <h2>Поддержать проект</h2>
+                        <p>Отчёты бесплатные. Если аудит оказался полезным, поддержите развитие проекта.</p>
+                    </div>
+                    <div class="panel-body">
+                        <div class="donate-reqs">
+                            <div class="donate-req">
+                                <span class="donate-req-label">СБП</span>
+                                <span class="donate-req-value">+7 999 123-45-67</span>
+                            </div>
+                            <div class="donate-req">
+                                <span class="donate-req-label">Карта</span>
+                                <span class="donate-req-value">2200 0000 0000 0000</span>
+                            </div>
+                        </div>
+                        <p class="donate-disclaimer">
+                            Перевод является добровольной безвозмездной поддержкой.
+                            Проект не оказывает услуг за донат и не обещает ничего взамен.
+                        </p>
+                    </div>
+                </div>
+                {% endif %}
+                {% endif %}
+
+            </div>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="wrap">
+            <span>© 2026 Cloud Dependency Audit</span>
+            <span>Отчёты бесплатны. Данные не сохраняются.</span>
+        </div>
+    </footer>
+
+</body>
+</html>
