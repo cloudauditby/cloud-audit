@@ -1,0 +1,6 @@
+venv/
+__pycache__/
+*.pyc
+font_base64.txt
+arial.ttf
+.env
