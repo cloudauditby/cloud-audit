@@ -24,6 +24,8 @@
             --orange: #e08a3c;
             --yellow: #d4b03a;
             --green: #4caf7a;
+            --donate: #f25c54;
+            --donate-hover: #ff7169;
             --mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
         }
 
@@ -149,6 +151,7 @@
             font: inherit; font-size: 15px; font-weight: 600;
             cursor: pointer;
             transition: background 0.15s;
+            text-decoration: none;
         }
         .btn:hover { background: #95b9e8; }
         .btn svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2.5; fill: none; }
@@ -285,14 +288,47 @@
         }
 
         /* --- DONATE --- */
-        .donate-reqs { border-top: 1px solid var(--border); margin: 16px 0 20px; }
-        .donate-req {
-            display: flex; justify-content: space-between; align-items: center; gap: 16px;
-            padding: 13px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+        .donate-content {
+            text-align: center;
+            padding: 8px 0;
         }
-        .donate-req-label { color: var(--text-muted); }
-        .donate-req-value { font-family: var(--mono); font-size: 13px; font-weight: 500; }
-        .donate-disclaimer { font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+        .donate-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            max-width: 50ch;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .donate-btn {
+            background: var(--donate);
+            border-color: var(--donate);
+            color: #ffffff;
+            font-size: 15px;
+            padding: 14px 28px;
+            width: auto;
+            display: inline-flex;
+            margin: 0 auto;
+        }
+        .donate-btn:hover {
+            background: var(--donate-hover);
+            border-color: var(--donate-hover);
+        }
+        .donate-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+            stroke: none;
+        }
+        .donate-disclaimer {
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            padding-top: 20px;
+            margin-top: 20px;
+            border-top: 1px solid var(--border);
+            text-align: left;
+        }
 
         /* --- FOOTER --- */
         .footer { border-top: 1px solid var(--border); font-size: 13px; color: var(--text-muted); }
@@ -314,6 +350,7 @@
             .gauge { gap: 2px; }
             .bia-grid { grid-template-columns: 1fr; }
             .intro h1 { font-size: 28px; }
+            .donate-btn { width: 100%; }
         }
         @media (prefers-reduced-motion: reduce) {
             html { scroll-behavior: auto; }
@@ -330,7 +367,7 @@
                 <span class="logo-mark" aria-hidden="true"></span>
                 <span>Cloud Audit</span>
             </a>
-            <span class="header-meta">v1.1</span>
+            <span class="header-meta">v1.2</span>
         </div>
     </header>
 
@@ -539,15 +576,20 @@
                         <p>Отчёты бесплатные. Если аудит оказался полезным, поддержите развитие проекта.</p>
                     </div>
                     <div class="panel-body">
-                        <div class="donate-reqs">
-                            <div class="donate-req">
-                                <span class="donate-req-label">СБП</span>
-                                <span class="donate-req-value">+7 999 123-45-67</span>
-                            </div>
-                            <div class="donate-req">
-                                <span class="donate-req-label">Карта</span>
-                                <span class="donate-req-value">2200 0000 0000 0000</span>
-                            </div>
+                        <div class="donate-content">
+                            <p class="donate-text">
+                                Проект развивается без рекламы и подписок. Любая поддержка помогает 
+                                оплачивать сервер и добавлять новые функции.
+                            </p>
+                            <a href="https://www.donationalerts.com/r/cloudaudit"
+                               target="_blank"
+                               rel="noopener noreferrer"
+                               class="btn donate-btn">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                                </svg>
+                                Поддержать на DonationAlerts
+                            </a>
                         </div>
                         <p class="donate-disclaimer">
                             Перевод является добровольной безвозмездной поддержкой.
